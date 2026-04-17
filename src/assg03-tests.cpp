@@ -16,7 +16,7 @@
 #include "lc3vm_dbg.h"
 
 #define task1
-#undef task2
+#define task2
 #undef task3
 #undef task4
 #undef task5

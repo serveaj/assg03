@@ -68,6 +68,7 @@ extern uint16_t PC_START;
 // your task functions should go here
 uint16_t mem_read(uint16_t address);              // read memory at address
 void mem_write(uint16_t address, uint16_t value); // write value to memory address
+uint16_t sign_extend(uint16_t bits, int size);    // sign extend bits to 16 bits based on size of bits
 
 void rti(uint16_t i);
 void res(uint16_t i);
