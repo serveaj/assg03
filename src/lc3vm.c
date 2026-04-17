@@ -48,7 +48,7 @@ uint16_t PC_START = 0x3000;
 uint16_t mem_read(uint16_t address)
 {
   // simply return the value at the indicated address in our simulated memory
-  return 0;
+  return mem[address];
 }
 
 /** @brief memory write, transfer to memory
@@ -69,6 +69,7 @@ uint16_t mem_read(uint16_t address)
 void mem_write(uint16_t address, uint16_t value)
 {
   // simply store the value at the indicated address in our simulated memory
+  mem[address] = value;
 }
 
 /** @brief sign extend bits
