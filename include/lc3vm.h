@@ -97,6 +97,8 @@ void jmp(uint16_t i); // jump operation
 void br(uint16_t i);  // conditional branch operation
 void jsr(uint16_t i); // jump to subroutine operation
 
+void start(uint16_t i); // start the LC-3 VM execution at the given offset
+
 void rti(uint16_t i);
 void res(uint16_t i);
 void tgetc();

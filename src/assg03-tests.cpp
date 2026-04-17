@@ -23,8 +23,8 @@
 #define task6
 #define task7
 #define task8
-#undef task9
-#undef task10
+#define task9
+#define task10
 
 /**
  * @brief Task 1: Test memory access functions to read and write into
