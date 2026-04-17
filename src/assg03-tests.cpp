@@ -21,7 +21,7 @@
 #define task4
 #define task5
 #define task6
-#undef task7
+#define task7
 #undef task8
 #undef task9
 #undef task10

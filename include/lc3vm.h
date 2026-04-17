@@ -89,6 +89,10 @@ void ldi(uint16_t i); // load indirect memory access operation
 void ldr(uint16_t i); // load base + offset memory access operation
 void lea(uint16_t i); // load effective address operation
 
+void st(uint16_t i);  // store memory access operation
+void sti(uint16_t i); // store indirect memory access operation
+void str(uint16_t i); // store base and offset memory access operation
+
 void rti(uint16_t i);
 void res(uint16_t i);
 void tgetc();
