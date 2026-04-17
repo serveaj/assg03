@@ -20,7 +20,7 @@
 #define task3
 #define task4
 #define task5
-#undef task6
+#define task6
 #undef task7
 #undef task8
 #undef task9

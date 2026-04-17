@@ -84,6 +84,11 @@ void add(uint16_t i);   // add operation
 void andlc(uint16_t i); // logical AND operation
 void notlc(uint16_t i); // logical NOT operation
 
+void ld(uint16_t i);  // load memory access operation
+void ldi(uint16_t i); // load indirect memory access operation
+void ldr(uint16_t i); // load base + offset memory access operation
+void lea(uint16_t i); // load effective address operation
+
 void rti(uint16_t i);
 void res(uint16_t i);
 void tgetc();
