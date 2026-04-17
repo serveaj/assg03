@@ -93,6 +93,10 @@ void st(uint16_t i);  // store memory access operation
 void sti(uint16_t i); // store indirect memory access operation
 void str(uint16_t i); // store base and offset memory access operation
 
+void jmp(uint16_t i); // jump operation
+void br(uint16_t i);  // conditional branch operation
+void jsr(uint16_t i); // jump to subroutine operation
+
 void rti(uint16_t i);
 void res(uint16_t i);
 void tgetc();

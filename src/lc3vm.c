@@ -432,7 +432,11 @@ void str(uint16_t i)
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of jmp() here below its documentation
+void jmp(uint16_t i)
+{
+  uint16_t base = SR1(i); // get base register from instruction
+  reg[RPC] = reg[base];   // set RPC to the value in the base register
+}
 
 /** @brief conditional branch
  *
@@ -450,7 +454,16 @@ void str(uint16_t i)
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of br() here below its documentation
+void br(uint16_t i)
+{
+  uint16_t cond_bits = DR(i); // extract condition bits from instruction
+
+  // check if any of the specified conditions are met
+  if (reg[RCND] & cond_bits)
+  {
+    reg[RPC] += PCOFF9(i); // perform PC-relative branch by adding offset to RPC
+  }
+}
 
 /** @brief jump to/from subtroutine
  *
@@ -463,7 +476,22 @@ void str(uint16_t i)
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of jsr() here below its documentation
+void jsr(uint16_t i)
+{
+  // save current PC in R7
+  reg[R7] = reg[RPC];
+
+  // jump to subroutine address
+  if (FL(i) == 0)
+  {
+    uint16_t base = SR1(i); // get base register from instruction
+    reg[RPC] = reg[base];   // perform PC-relative jump by adding base register value to RPC
+  }
+  else
+  {
+    reg[RPC] += PCOFF11(i); // perform PC-relative jump by adding offset to RPC
+  }
+}
 
 /** @brief return from interrupt
  *
