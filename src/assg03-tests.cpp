@@ -15,16 +15,16 @@
 #include "lc3vm.h"
 #include "lc3vm_dbg.h"
 
-#undef task1
-#undef task2
-#undef task3
-#undef task4
-#undef task5
-#undef task6
-#undef task7
-#undef task8
-#undef task9
-#undef task10
+#define task1
+#define task2
+#define task3
+#define task4
+#define task5
+#define task6
+#define task7
+#define task8
+#define task9
+#define task10
 
 /**
  * @brief Task 1: Test memory access functions to read and write into
@@ -145,24 +145,16 @@ TEST_CASE("Task 3: DR destination register extraction operations", "[task3]")
 }
 
 TEST_CASE("Task 3: SEXTIMM immediate operand extraction and sign extension", "[task3]")
-{
-  CHECK(SEXTIMM(add_ins) == 0x0003);
-}
+{ CHECK(SEXTIMM(add_ins) == 0x0003); }
 
 TEST_CASE("Task 3: OFF6 immediate operand extraction and sign extension", "[task3]")
-{
-  CHECK(OFF6(str_ins) == 0x001F);
-}
+{ CHECK(OFF6(str_ins) == 0x001F); }
 
 TEST_CASE("Task 3: PCOFF9 immediate operand extraction and sign extension", "[task3]")
-{
-  CHECK(PCOFF9(ld_ins) == 0xFF0F);
-}
+{ CHECK(PCOFF9(ld_ins) == 0xFF0F); }
 
 TEST_CASE("Task 3: PCOFF11 immediate operand extraction and sign extension", "[task3]")
-{
-  CHECK(PCOFF11(jsr_ins) == 0xFC55);
-}
+{ CHECK(PCOFF11(jsr_ins) == 0xFC55); }
 #endif // task3
 
 /**

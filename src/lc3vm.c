@@ -1,9 +1,9 @@
 /** @file lc3vm.c
  * @brief LC-3 VM Implementation
  *
- * @author Student Name
- * @note   cwid: 123456
- * @date   Spring 2024
+ * @author Joshua Darwin
+ * @note   cwid: 50327671
+ * @date   Spring 2026
  * @note   ide:  g++ 8.2.0 / GNU Make 4.2.1
  *
  * Implementation of LC-3 VM/Microarchitecture simulator.  Functions
@@ -11,11 +11,11 @@
  * Support functions for the microcode to decode instructions, addresses
  * and simulate registers, datapath and ALU operations.
  */
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "lc3vm.h"
 #include "lc3vm_dbg.h"
@@ -27,7 +27,6 @@ bool running = true;
 uint16_t mem[UINT16_MAX + 1] = {0};
 uint16_t reg[RCNT] = {0};
 uint16_t PC_START = 0x3000;
-
 
 /** @brief memory read, transfer from memory
  *
@@ -45,7 +44,8 @@ uint16_t PC_START = 0x3000;
  *   later as something other than an unsigned integer, but this function
  *   simply reads and returns the 16 bits stored at the indicated address.
  */
-// put your implememtation of mem_read() here below it documentation
+uint16_t mem_read(uint16_t address)
+{ return mem[address]; }
 
 /** @brief memory write, transfer to memory
  *
@@ -62,7 +62,8 @@ uint16_t PC_START = 0x3000;
  *   stored where requested, it could actually be a signed number, or an ascii
  *   character, or some other type of data.
  */
-// put your implememtation of mem_write() here below it documentation
+void mem_write(uint16_t address, uint16_t value)
+{ mem[address] = value; }
 
 /** @brief sign extend bits
  *
@@ -70,7 +71,7 @@ uint16_t PC_START = 0x3000;
  * extension on the original 16-bit value.  For example, if the bits given are
  *    0000 0000 0001 1010
  * This number is a 5 bit value in twos-complement (-6 in this case), but we need
- * to extend this result to the full 16 bits before we can add this value to 
+ * to extend this result to the full 16 bits before we can add this value to
  * other twos-complement encoded values and get the expected result.  For a
  * sign_position of 5, the result after sign extend should be:
  *    1111 1111 1111 1010 (which is -6 in twos-complement encoded in full 16 bits)
@@ -87,7 +88,24 @@ uint16_t PC_START = 0x3000;
  *    bit positions, thus converting this to a full 16-bit twos-complement sigend
  *    value.
  */
-// put your implememtation of sign_extend() here below it documentation
+uint16_t sign_extend(uint16_t bits, int size)
+{
+  // mask to get the sign bit
+  uint16_t sign_bit = (bits >> (size - 1)) & 1;
+
+  if (sign_bit == 1)
+  {
+    // extend with 1s
+    bits |= (0xFFFF << size);
+  }
+  else
+  {
+    // ensure upper bits are cleared
+    bits &= ~(0xFFFF << size);
+  }
+
+  return bits;
+}
 
 /** @brief update condition register flags
  *
@@ -102,7 +120,23 @@ uint16_t PC_START = 0x3000;
  *   was just modified by an operation and needs to have the condition code flags
  *   updated as a side effect of the operation just performed.
  */
-// put your implememtation of update_flags() here below it documentation
+void update_flags(enum registr r)
+{
+  uint16_t val = reg[r];
+
+  if (val == 0)
+  {
+    reg[RCND] = FZ;
+  }
+  else if ((val >> 15) & 1)
+  {
+    reg[RCND] = FN;
+  }
+  else
+  {
+    reg[RCND] = FP;
+  }
+}
 
 /** @brief add operation
  *
@@ -129,7 +163,27 @@ uint16_t PC_START = 0x3000;
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of add() here below it documentation
+void add(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t sr1 = SR1(i);
+
+  uint16_t result;
+
+  if (FIMM(i))
+  {
+    uint16_t imm = SEXTIMM(i);
+    result = reg[sr1] + imm;
+  }
+  else
+  {
+    uint16_t sr2 = SR2(i);
+    result = reg[sr1] + reg[sr2];
+  }
+
+  reg[dr] = result;
+  update_flags(dr);
+}
 
 /** @brief logical AND operation
  *
@@ -150,7 +204,27 @@ uint16_t PC_START = 0x3000;
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of andlc() here below it documentation
+void andlc(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t sr1 = SR1(i);
+
+  uint16_t result;
+
+  if (FIMM(i))
+  {
+    uint16_t imm = SEXTIMM(i);
+    result = reg[sr1] & imm;
+  }
+  else
+  {
+    uint16_t sr2 = SR2(i);
+    result = reg[sr1] & reg[sr2];
+  }
+
+  reg[dr] = result;
+  update_flags(dr);
+}
 
 /** @brief logical NOT operation
  *
@@ -164,7 +238,14 @@ uint16_t PC_START = 0x3000;
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of notlc() here below it documentation
+void notlc(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t sr = SR1(i);
+
+  reg[dr] = ~reg[sr];
+  update_flags(dr);
+}
 
 /** @brief load RPC + offset
  *
@@ -182,7 +263,16 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of ld() here below it documentation
+void ld(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t offset = PCOFF9(i);
+
+  uint16_t address = reg[RPC] + offset;
+  reg[dr] = mem_read(address);
+
+  update_flags(dr);
+}
 
 /** @brief load indirect
  *
@@ -199,13 +289,24 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of ldi() here below it documentation
+void ldi(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t offset = PCOFF9(i);
+
+  uint16_t address = reg[RPC] + offset;
+  uint16_t indirect = mem_read(address);
+
+  reg[dr] = mem_read(indirect);
+
+  update_flags(dr);
+}
 
 /** @brief load base + relative offset
- * 
+ *
  * This instruction uses SR1 as a base address.  The value in this register is
  * treated as and address and the low 6 bits are treated as an offset which is
- * a twos-complement signed number.  So offset values can range from 
+ * a twos-complement signed number.  So offset values can range from
  * +32 to -32 from the base address in the base register.  This offset is added
  * to the base address and the value from this memory location is fetched
  * and stored in the destination register.
@@ -215,7 +316,17 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of ldr() here below it documentation
+void ldr(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t base = SR1(i);
+  uint16_t offset = OFF6(i);
+
+  uint16_t address = reg[base] + offset;
+  reg[dr] = mem_read(address);
+
+  update_flags(dr);
+}
 
 /** @brief load effective address
  *
@@ -232,7 +343,13 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of lea() here below it documentation
+void lea(uint16_t i)
+{
+  uint16_t dr = DR(i);
+  uint16_t offset = PCOFF9(i);
+
+  reg[dr] = reg[RPC] + offset;
+}
 
 /** @brief store to PC + offset
  *
@@ -247,7 +364,14 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of st() here below it documentation
+void st(uint16_t i)
+{
+  uint16_t sr = DR(i); // actually source
+  uint16_t offset = PCOFF9(i);
+
+  uint16_t address = reg[RPC] + offset;
+  mem_write(address, reg[sr]);
+}
 
 /** @brief store indirect
  *
@@ -263,7 +387,16 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of sti() here below it documentation
+void sti(uint16_t i)
+{
+  uint16_t sr = DR(i);
+  uint16_t offset = PCOFF9(i);
+
+  uint16_t address = reg[RPC] + offset;
+  uint16_t indirect = mem_read(address);
+
+  mem_write(indirect, reg[sr]);
+}
 
 /** @brief store offset relative to base address
  *
@@ -278,11 +411,19 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of str() here below it documentation
+void str(uint16_t i)
+{
+  uint16_t sr = DR(i);
+  uint16_t base = SR1(i);
+  uint16_t offset = OFF6(i);
+
+  uint16_t address = reg[base] + offset;
+  mem_write(address, reg[sr]);
+}
 
 /** @brief jump unconditionally
  *
- * Jump unconditionally to a 16 bit address.  The jump 
+ * Jump unconditionally to a 16 bit address.  The jump
  * destination is held in the indicated base
  * register (in the SR1 bits) of the given instruction.
  *
@@ -291,7 +432,8 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of jmp() here below its documentation
+void jmp(uint16_t i)
+{ reg[RPC] = reg[SR1(i)]; }
 
 /** @brief conditional branch
  *
@@ -309,20 +451,40 @@ uint16_t PC_START = 0x3000;
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of br() here below its documentation
+void br(uint16_t i)
+{
+  uint16_t cond = DR(i);
+  uint16_t offset = PCOFF9(i);
 
+  if (cond & reg[RCND])
+  {
+    reg[RPC] += offset;
+  }
+}
 /** @brief jump to/from subtroutine
  *
  * This microcode handles both jump into a subroutine and return
  * from subroutine, which may appear as different opcodes jsr and
- * jsrr respectively in the assembly.  
+ * jsrr respectively in the assembly.
  *
  * @param i The instruction.  The bits of the instruction we are
  *   executing.  We need all of the bits so that we can extract the
  *   destination and source register operands, and to extract the
  *   second source register or the immediate value encoded in the
  */
-// put your implememtation of jsr() here below its documentation
+void jsr(uint16_t i)
+{
+  reg[R7] = reg[RPC];
+
+  if (FL(i))
+  {
+    reg[RPC] = reg[RPC] + PCOFF11(i);
+  }
+  else
+  {
+    reg[RPC] = reg[SR1(i)];
+  }
+}
 
 /** @brief return from interrupt
  *
@@ -342,7 +504,7 @@ void rti(uint16_t i) {} // unused
  * Reserved/unused opcode (1101).  We do nothing if it somehow
  * get invoked in simulation, so this is also effectively a
  * NOOP instruction currently.
- * 
+ *
  * @param i The instruction.  The bits of the instruction we are
  *   executing.  We need all of the bits so that we can extract the
  *   destination and source register operands, and to extract the
@@ -357,20 +519,16 @@ void res(uint16_t i) {} // unused
  * character and store it.
  */
 void tgetc()
-{
-  reg[R0] = getchar();
-}
+{ reg[R0] = getchar(); }
 
 /** @brief write character OS service routine
  *
  * Write a single character found in register R0 to
  * standard output (usually connected to a console
- * or terminal).  
+ * or terminal).
  */
 void tout()
-{
-  fprintf(stdout, "%c", (char)reg[R0]);
-}
+{ fprintf(stdout, "%c", (char)reg[R0]); }
 
 /** @brief write string OS service routine
  *
@@ -378,7 +536,7 @@ void tout()
  * console.  We probably normally would reuse the
  * tout() in a real implementation and call repeatedly.
  * Here we hook into C standard library to output a string
- * of characters. 
+ * of characters.
  *
  * Note: this method assumes a null character 0x0000 terminates
  * the string to be written (which is came as C standard library).
@@ -390,7 +548,7 @@ void tout()
  */
 void tputs()
 {
-  uint16_t *p = mem + reg[R0];
+  uint16_t* p = mem + reg[R0];
   while (*p)
   {
     fprintf(stdout, "%c", (char)*p);
@@ -418,7 +576,9 @@ void tin()
  * LC-3 memory.  And correspondingly here have routines that expect
  * 2 ASCII characters per word and displays them accordingly.
  */
-void tputsp() { /* Not Implemented */ }
+void tputsp()
+{ /* Not Implemented */
+}
 
 /** @brief halt system service routine
  *
@@ -428,9 +588,7 @@ void tputsp() { /* Not Implemented */ }
  * determine if we should halt execution.
  */
 void thalt()
-{
-  running = false;
-} 
+{ running = false; }
 
 /** @brief read unsigned int OS service routine
  *
@@ -441,25 +599,21 @@ void thalt()
  * cannot be correctly parsed into an unsigned 16 bit value here.
  */
 void tinu16()
-{
-  fscanf(stdin, "%hu", &reg[R0]);
-}
+{ fscanf(stdin, "%hu", &reg[R0]); }
 
 /** @brief write unsigned int OS service routine
  *
  * Write value in R0, interpreted as a 16 bit unsigned integer, to the
- * standard output console.  
+ * standard output console.
  */
 void toutu16()
-{
-  fprintf(stdout, "%hu\n", reg[R0]);
-}
+{ fprintf(stdout, "%hu\n", reg[R0]); }
 
 /**
  * Trap service routine function pointer array.  Routines are indexed from 0
  * to 7 currently for the 8 service routines.
  */
-trp_ex_f trp_ex[8] = { tgetc, tout, tputs, tin, tputsp, thalt, tinu16, toutu16 };
+trp_ex_f trp_ex[8] = {tgetc, tout, tputs, tin, tputsp, thalt, tinu16, toutu16};
 
 /** @brief trap instruction
  *
@@ -474,9 +628,7 @@ trp_ex_f trp_ex[8] = { tgetc, tout, tputs, tin, tputsp, thalt, tinu16, toutu16 }
  *   second source register or the immediate value encoded in the
  */
 void trap(uint16_t i)
-{
-  trp_ex[TRP(i) - trp_offset]();
-}
+{ trp_ex[TRP(i) - trp_offset](); }
 
 /**
  * LC-3 instruction microcode store / lookup table.  Need to define array
@@ -486,8 +638,7 @@ void trap(uint16_t i)
  * looking up and invoking the (microcode) instruction function from this
  * lookup table.
  */
-// you need to declare the operator execution lookup table here.  This will be an
-// array of function pointers to your opcode microcode execution functions.
+op_ex_f op_table[NUMOPS];
 
 
 /** @brief start/run LC-3 simulator
@@ -505,7 +656,36 @@ void trap(uint16_t i)
  *   a 16-bit (signed) offset from this location and start there instead
  *   in this routine.
  */
-// put your implememtation of start() here below its documentation
+void start(uint16_t offset)
+{
+  reg[RPC] = PC_START + offset;
+  op_table[0x0] = br;
+  op_table[0x1] = add;
+  op_table[0x2] = ld;
+  op_table[0x3] = st;
+  op_table[0x4] = jsr;
+  op_table[0x5] = andlc;
+  op_table[0x6] = ldr;
+  op_table[0x7] = str;
+  op_table[0x8] = rti;
+  op_table[0x9] = notlc;
+  op_table[0xA] = ldi;
+  op_table[0xB] = sti;
+  op_table[0xC] = jmp;
+  op_table[0xD] = res;
+  op_table[0xE] = lea;
+  op_table[0xF] = trap;
+  while (running)
+  {
+    uint16_t instr = mem_read(reg[RPC]);
+
+    reg[RPC]++;
+
+    uint16_t opcode = OPC(instr);
+
+    op_table[opcode](instr);
+  }
+}
 
 /** @brief load an LC-3 machine instruction image
  *
@@ -514,7 +694,7 @@ void trap(uint16_t i)
  * 0x3000 by default, though a 16-bit offset can be specified to
  * load the machine instructions at some offset from the normal
  * starting location.
- * 
+ *
  * @param fname The name of the file to open and read the LC-3
  *   machine instructions from.  This is expected to be a binary file
  *   which reads 16 bit values and places them consecutively into
@@ -523,15 +703,15 @@ void trap(uint16_t i)
  *   the load location can be offset by a signed 16-bit offset value here.
  *   If this value is 0, programs are loaded to 0x3000 by default.
  */
-void ld_img(char *fname, uint16_t offset)
+void ld_img(char* fname, uint16_t offset)
 {
-  FILE *in = fopen(fname, "rb");
-  if (NULL==in)
+  FILE* in = fopen(fname, "rb");
+  if (NULL == in)
   {
     fprintf(stderr, "Cannot open file %s.\n", fname);
-    exit(1);    
+    exit(1);
   }
-  uint16_t *p = mem + PC_START + offset;
-  fread(p, sizeof(uint16_t), (UINT16_MAX-PC_START), in);
+  uint16_t* p = mem + PC_START + offset;
+  fread(p, sizeof(uint16_t), (UINT16_MAX - PC_START), in);
   fclose(in);
 }
