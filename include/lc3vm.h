@@ -80,6 +80,10 @@ void mem_write(uint16_t address, uint16_t value); // write value to memory addre
 uint16_t sign_extend(uint16_t bits, int size);    // sign extend bits to 16 bits based on size of bits
 void update_flags(enum registr r);                // update condition code flags based on value in register r
 
+void add(uint16_t i);   // add operation
+void andlc(uint16_t i); // logical AND operation
+void notlc(uint16_t i); // logical NOT operation
+
 void rti(uint16_t i);
 void res(uint16_t i);
 void tgetc();

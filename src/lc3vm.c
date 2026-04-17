@@ -169,7 +169,25 @@ void update_flags(enum registr r)
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of add() here below it documentation
+void add(uint16_t i)
+{
+  uint16_t dr = DR(i);   // extract destination register from instruction
+  uint16_t sr1 = SR1(i); // extract source register 1 from instruction
+
+  // check if FIMM flag is set for immediate mode
+  if (FIMM(i))
+  {
+    uint16_t imm5 = SEXTIMM(i); // extract and sign extend immediate value
+    reg[dr] = reg[sr1] + imm5;  // perform addition with immediate value
+  }
+  else
+  {
+    uint16_t sr2 = SR2(i);         // extract source register 2 from instruction
+    reg[dr] = reg[sr1] + reg[sr2]; // perform addition with second source register
+  }
+
+  update_flags((enum registr)dr); // update condition code flags based on result in destination register
+}
 
 /** @brief logical AND operation
  *
@@ -190,7 +208,25 @@ void update_flags(enum registr r)
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of andlc() here below it documentation
+void andlc(uint16_t i)
+{
+  uint16_t dr = DR(i);   // extract destination register from instruction
+  uint16_t sr1 = SR1(i); // extract source register 1 from instruction
+
+  // check if FIMM flag is set for immediate mode
+  if (FIMM(i))
+  {
+    uint16_t imm5 = SEXTIMM(i); // extract and sign extend immediate value
+    reg[dr] = reg[sr1] & imm5;  // perform AND with immediate value
+  }
+  else
+  {
+    uint16_t sr2 = SR2(i);         // extract source register 2 from instruction
+    reg[dr] = reg[sr1] & reg[sr2]; // perform AND with second source register
+  }
+
+  update_flags((enum registr)dr); // update condition code flags based on result in destination register
+}
 
 /** @brief logical NOT operation
  *
@@ -204,7 +240,15 @@ void update_flags(enum registr r)
  *   second source register or the immediate value encoded in the
  *   instruction.
  */
-// put your implememtation of notlc() here below it documentation
+void notlc(uint16_t i)
+{
+  uint16_t dr = DR(i);   // extract destination register from instruction
+  uint16_t sr1 = SR1(i); // extract source register 1 from instruction
+
+  // perform NOT operation
+  reg[dr] = ~reg[sr1];
+  update_flags((enum registr)dr); // update condition code flags based on result in destination register
+}
 
 /** @brief load RPC + offset
  *
