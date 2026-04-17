@@ -24,6 +24,15 @@
 #define FL(i) (((i) >> 11) & 1)
 #define TRP(i) ((i) & 0xFF)
 
+#define OPC(i) ((i) >> 12)           // opcode is in bits 15-12
+#define SR2(i) ((i) & 0x0007)        // source register 2 is in bits 2-0
+#define SR1(i) (((i) >> 6) & 0x0007) // source register 1 is in bits 8-6
+#define DR(i) (((i) >> 9) & 0x0007)  // destination register is in bits 11-9
+#define SEXTIMM(i) (sign_extend((i), 5))  // 5-bit immediate operand is in bits 8-0
+#define OFF6(i) (sign_extend((i), 6))     // 6-bit offset operand is in bits 5-0
+#define PCOFF9(i) (sign_extend((i), 9))   // 9-bit PC-relative offset operand is in bits 8-0
+#define PCOFF11(i) (sign_extend((i), 11)) // 11-bit PC-relative offset operand is in bits 10-0
+
 typedef void (*op_ex_f)(uint16_t i);
 typedef void (*trp_ex_f)();
 
